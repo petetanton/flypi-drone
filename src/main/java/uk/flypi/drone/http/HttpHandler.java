@@ -7,6 +7,7 @@ import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
@@ -25,22 +26,25 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         if (msg instanceof FullHttpRequest) {
             final FullHttpRequest request = (FullHttpRequest) msg;
+            final FullHttpResponse response;
 
+            if (!request.getMethod().equals(HttpMethod.POST)) {
+                response = buildDefaultResponse(HttpResponseStatus.METHOD_NOT_ALLOWED, null);
+                response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, 0);
+            } else {
+                final String requestMsg = request.content().toString(CharsetUtil.UTF_8);
+                final CmdRequest cmdRequest = gson.fromJson(requestMsg, CmdRequest.class);
+                final String responseMessage = "Hello from FlyPi!";
+                response = buildDefaultResponse(HttpResponseStatus.OK, responseMessage);
 
-            final String requestMsg = request.content().toString(CharsetUtil.UTF_8);
-            final CmdRequest cmdRequest = gson.fromJson(requestMsg, CmdRequest.class);
-            final String responseMessage = "Hello from FlyPi!";
-            FullHttpResponse response = new DefaultFullHttpResponse(
-                    HttpVersion.HTTP_1_1,
-                    HttpResponseStatus.OK,
-                    copiedBuffer(responseMessage.getBytes())
-            );
+//            if (HttpHeaders.isKeepAlive(request)) {
+//                response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
+//            }
+                response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
+                response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, responseMessage.length());
 
-            if (HttpHeaders.isKeepAlive(request)) {
-                response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
             }
-            response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
-            response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, responseMessage.length());
+
 
             ctx.writeAndFlush(response);
         } else {
@@ -60,6 +64,21 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 HttpResponseStatus.INTERNAL_SERVER_ERROR,
                 copiedBuffer(cause.getMessage().getBytes())
         ));
+    }
+
+    private FullHttpResponse buildDefaultResponse(final HttpResponseStatus status, final String message) {
+        if (message != null) {
+            return new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1,
+                    status,
+                    copiedBuffer(message.getBytes())
+            );
+        } else {
+            return new DefaultFullHttpResponse(
+                    HttpVersion.HTTP_1_1,
+                    status
+            );
+        }
     }
 
 }
