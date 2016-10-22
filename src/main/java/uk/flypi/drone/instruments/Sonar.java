@@ -1,7 +1,6 @@
 package uk.flypi.drone.instruments;
 
 import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.RaspiPin;
@@ -9,18 +8,15 @@ import com.pi4j.io.gpio.RaspiPin;
 import java.util.concurrent.TimeoutException;
 
 public class Sonar {
+//    TODO: Calculate speed of sound from a temperature sensor
     private static final float SOUND_SPEED = 344f;
-    private final GpioController gpio;
     private final GpioPinDigitalInput echoPin;
     private final GpioPinDigitalOutput trigPin;
 
-    public Sonar() {
-        this.gpio = GpioFactory.getInstance();
-
+    public Sonar(final GpioController gpio) {
         this.trigPin = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04);
         this.echoPin = gpio.provisionDigitalInputPin(RaspiPin.GPIO_05);
         this.trigPin.low();
-        System.out.println(this.echoPin.isLow());
     }
 
     private void triggerSensor() {
@@ -46,22 +42,6 @@ public class Sonar {
     }
 
     public float measureDistance() throws TimeoutException, InterruptedException {
-//        this.trigPin.high();
-//        Thread.sleep(1);
-//        this.trigPin.low();
-//        long start = System.nanoTime();
-////        this.waitForSignal();
-////        while (this.echoPin.isLow()) {
-////
-////        }
-//        long end = System.nanoTime();
-//        System.out.println("done");
-//        final long durationMicro = (long)((end - start) / 1000.0);
-//        System.out.println(String.format("Took %s us", durationMicro));
-//        return SOUND_SPEED * durationMicro / ( 2  * 1000000);
-//
-
-
         this.triggerSensor();
         this.waitForSignal();
         long duration = this.measureSignal();
