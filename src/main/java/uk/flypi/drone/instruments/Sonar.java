@@ -4,12 +4,17 @@ import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.RaspiPin;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
+import uk.flypi.drone.exception.InstrumentException;
 
 import java.util.concurrent.TimeoutException;
 
 public class Sonar {
-//    TODO: Calculate speed of sound from a temperature sensor
+    //    TODO: Calculate speed of sound from a temperature sensor
     private static final float SOUND_SPEED = 344f;
+    private static final Logger LOG = LogManager.getLogger(Sonar.class);
+
     private final GpioPinDigitalInput echoPin;
     private final GpioPinDigitalOutput trigPin;
 
@@ -25,7 +30,7 @@ public class Sonar {
             Thread.sleep(0, 10 * 1000);
             this.trigPin.low();
         } catch (InterruptedException ex) {
-            System.err.println("Interrupt during trigger");
+            LOG.error("Interrupt during trigger", ex);
         }
     }
 
@@ -41,10 +46,15 @@ public class Sonar {
         }
     }
 
-    public float measureDistance() throws TimeoutException, InterruptedException {
-        this.triggerSensor();
-        this.waitForSignal();
-        long duration = this.measureSignal();
+    public float measureDistance() throws InstrumentException {
+        long duration;
+        try {
+            this.triggerSensor();
+            this.waitForSignal();
+            duration = this.measureSignal();
+        } catch (TimeoutException | InterruptedException e) {
+            throw new InstrumentException("An exception occured whilst measuring a distance", e);
+        }
 
         return duration * SOUND_SPEED / (2 * 10000);
     }

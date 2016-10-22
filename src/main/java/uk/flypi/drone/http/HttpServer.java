@@ -10,9 +10,12 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 
 public class HttpServer {
+    private static final Logger LOG = LogManager.getLogger(HttpServer.class);
 
     private ChannelFuture channel;
     private final EventLoopGroup masterGroup;
@@ -23,7 +26,7 @@ public class HttpServer {
         this.slaveGroup = new NioEventLoopGroup();
     }
 
-    public void start() {
+    public void start() throws InterruptedException {
         Runtime.getRuntime().addShutdownHook(new Thread() {
             @Override
             public void run() {
@@ -47,7 +50,8 @@ public class HttpServer {
         try {
             channel = bootstrap.bind(8080).sync();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error("An exception occurred whilst trying to start the server", e);
+            throw e;
         }
     }
 
@@ -58,7 +62,7 @@ public class HttpServer {
         try {
             channel.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            LOG.error("An exception occurred whilst trying to shutdown  the server", e);
         }
     }
 }
