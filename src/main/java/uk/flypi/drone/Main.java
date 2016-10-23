@@ -7,8 +7,6 @@ import uk.flypi.drone.http.HttpServer;
 import uk.flypi.drone.instruments.InstrumentWatcher;
 import uk.flypi.drone.instruments.Sonar;
 
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeoutException;
 
 public class Main {
@@ -19,12 +17,7 @@ public class Main {
         LOG.info("warming up instruments...");
         InstrumentWatcher iw = new InstrumentWatcher(250);
         iw.addInstrumentToWatcher("sonar-down", new Sonar(GpioFactory.getInstance()));
-
-        final ScheduledExecutorService threadPool = Executors.newScheduledThreadPool(2);
-//        threadPool.scheduleWithFixedDelay(iw, 250, 250, TimeUnit.MILLISECONDS);
         LOG.info("instruments warmed up");
-
-
         LOG.info("Starting up please wait...");
         final HttpServer httpServer = new HttpServer();
         httpServer.start();

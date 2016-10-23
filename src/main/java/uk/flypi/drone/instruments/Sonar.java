@@ -59,9 +59,7 @@ public class Sonar extends Instrument {
                 LOG.error("An exception occured whilst measuring a distance", e);
                 return null;
             }
-            final Measurement measurement = new Measurement(duration * SOUND_SPEED / (2 * 10000), new Date());
-//            LOG.info("sonar: " + measurement.getValue());
-            return measurement;
+            return new Measurement(duration * SOUND_SPEED / (2 * 10000), new Date());
         });
     }
 
