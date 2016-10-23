@@ -1,6 +1,15 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 script: mvn package
 notifications:
   email: true
+deploy:
+  provider: releases
+  api_key:
+    secure: eHOOLgdVu4q7rcbabj6ukvnq62C+4A4nSjGk4ZKtA4zEz5S+3NIiLqxMp18cpcyY8gMfSFPCg4wD1VVnB7ayK/oRvznIN73MwfdXJg9DE3XbJOY8o6lsHe6pucvGdTNQrVzJf2Y3xbiRl8yz9Hsxe8L0Nf773rSpk3HTxRWJTwXurg85K9moBuVwwsglMnQZOT0oF08KmH3PtXtf2CL4MZchaLLbCDt0qbmllLjyx4EhBMVYfEOAWndcd2E90bPzG7gNV5k0MfJ67Jz9SUQa5gMSRr15/NVD1V93uez4g89hD7SEVQubhwk707i6vWf7yzc0adpBKzrHAhda8nNe0RHa830JtfWhG7h65Rh6F+OltrbEOOYFatSg7T1gNM9DCZGcBb/weV0wFlP4mCnG5oUIClbSRgkJJYC40WHmCygnY25tgnn1TSF9AJ7C5YewMzp6T2gzFyac1yrtEJNbCDvc0eorJT4JKpzs+PR4Rv4Ylmd/ZnbaDZDZ6zdmdXQmdDeoee+MFzkM3XG6vhcHJluXuwSGvmu9ck3N1aodUteFBOJQPt1bzCfgX1v1O89bJS/pTQdHiPZDhUq11GF40FnSn+iuxxWN8Y1cqgW7JmSzf27v3hD+Jg6H6sjN1ePlFYtrifMlMYRfOaHcFwiYs++DN+ZlBDjcAFoAOEkKNcc=
+  file: target/*.jar
+  skip_cleanup: true
+  on:
+    repo: petetanton/flypi-drone
+    tags: true
