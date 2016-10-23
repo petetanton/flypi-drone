@@ -1,7 +1,7 @@
 language: java
 jdk:
 - oraclejdk8
-script: mvn package
+script: ./build.sh
 notifications:
   email: true
 deploy:
