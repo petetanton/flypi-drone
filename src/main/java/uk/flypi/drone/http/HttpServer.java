@@ -62,7 +62,7 @@ public class HttpServer {
         try {
             channel.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-            LOG.error("An exception occurred whilst trying to shutdown  the server", e);
+            throw new RuntimeException("An exception occurred whilst trying to shutdown  the server", e);
         }
     }
 }

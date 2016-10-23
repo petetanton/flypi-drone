@@ -25,14 +25,10 @@ public class Sonar extends Instrument {
         this.trigPin.low();
     }
 
-    private void triggerSensor() {
-        try {
-            this.trigPin.high();
-            Thread.sleep(0, 10 * 1000);
-            this.trigPin.low();
-        } catch (InterruptedException ex) {
-            LOG.error("Interrupt during trigger", ex);
-        }
+    private void triggerSensor() throws InterruptedException {
+        this.trigPin.high();
+        Thread.sleep(0, 10 * 1000);
+        this.trigPin.low();
     }
 
     private void waitForSignal() throws TimeoutException, InterruptedException {
