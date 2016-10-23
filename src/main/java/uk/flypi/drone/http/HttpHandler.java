@@ -11,16 +11,15 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.codec.http.HttpVersion;
 import io.netty.util.CharsetUtil;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import uk.flypi.drone.ctrl.CmdRequest;
 
 import static io.netty.buffer.Unpooled.copiedBuffer;
 
 public class HttpHandler extends ChannelInboundHandlerAdapter {
-    private final Gson gson;
-
-    public HttpHandler() {
-        this.gson = new Gson();
-    }
+    private static final Logger LOG = LogManager.getLogger(HttpHandler.class);
+    private static final Gson GSON = new Gson();
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
@@ -33,7 +32,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, 0);
             } else {
                 final String requestMsg = request.content().toString(CharsetUtil.UTF_8);
-                final CmdRequest cmdRequest = gson.fromJson(requestMsg, CmdRequest.class);
+                final CmdRequest cmdRequest = GSON.fromJson(requestMsg, CmdRequest.class);
                 final String responseMessage = "Hello from FlyPi!";
                 response = buildDefaultResponse(HttpResponseStatus.OK, responseMessage);
 

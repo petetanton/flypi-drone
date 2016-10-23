@@ -9,7 +9,8 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
-import uk.flypi.drone.exception.InstrumentException;
+
+import java.util.concurrent.ExecutionException;
 
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,8 +36,8 @@ public class SonarTest {
     }
 
     @Test
-    public void itMeasuresADistance() throws InstrumentException {
-        final float actual = this.underTest.measureDistance();
+    public void itMeasuresADistance() throws ExecutionException, InterruptedException {
+        final Float actual = this.underTest.measure().get().getValue();
         verify(trigPin, times(2)).low();
         verify(gpio).provisionDigitalOutputPin(RaspiPin.GPIO_04);
         verify(gpio).provisionDigitalInputPin(RaspiPin.GPIO_05);

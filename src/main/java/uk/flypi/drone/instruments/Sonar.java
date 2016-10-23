@@ -6,11 +6,12 @@ import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.RaspiPin;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import uk.flypi.drone.exception.InstrumentException;
 
+import java.util.Date;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeoutException;
 
-public class Sonar {
+public class Sonar extends Instrument {
     //    TODO: Calculate speed of sound from a temperature sensor
     private static final float SOUND_SPEED = 344f;
     private static final Logger LOG = LogManager.getLogger(Sonar.class);
@@ -46,17 +47,22 @@ public class Sonar {
         }
     }
 
-    public float measureDistance() throws InstrumentException {
-        long duration;
-        try {
-            this.triggerSensor();
-            this.waitForSignal();
-            duration = this.measureSignal();
-        } catch (TimeoutException | InterruptedException e) {
-            throw new InstrumentException("An exception occured whilst measuring a distance", e);
-        }
-
-        return duration * SOUND_SPEED / (2 * 10000);
+    @Override
+    public CompletableFuture<Measurement> measure() {
+        return CompletableFuture.supplyAsync(() -> {
+            long duration;
+            try {
+                this.triggerSensor();
+                this.waitForSignal();
+                duration = this.measureSignal();
+            } catch (TimeoutException | InterruptedException e) {
+                LOG.error("An exception occured whilst measuring a distance", e);
+                return null;
+            }
+            final Measurement measurement = new Measurement(duration * SOUND_SPEED / (2 * 10000), new Date());
+//            LOG.info("sonar: " + measurement.getValue());
+            return measurement;
+        });
     }
 
     private long measureSignal() throws TimeoutException {
@@ -73,5 +79,6 @@ public class Sonar {
 
         return (long) Math.ceil((end - start) / 1000.0);  // Return micro seconds
     }
+
 
 }
