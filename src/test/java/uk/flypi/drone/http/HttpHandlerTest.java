@@ -22,7 +22,8 @@ import static org.mockito.Mockito.when;
 
 @RunWith(MockitoJUnitRunner.class)
 public class HttpHandlerTest {
-
+    private static final CharSequence CONNECTION_ENTITY = HttpHeaders.newEntity("Connection");
+    private static final CharSequence CLOSE_ENTITY = HttpHeaders.newEntity("close");
 
     private HttpHandler underTest;
     @Mock private ChannelHandlerContext ctx;

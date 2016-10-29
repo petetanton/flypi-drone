@@ -10,8 +10,11 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -30,21 +33,69 @@ public class SonarTest {
     public void setUp() throws Exception {
         when(gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04)).thenReturn(trigPin);
         when(gpio.provisionDigitalInputPin(RaspiPin.GPIO_05)).thenReturn(echoPin);
-        when(echoPin.isLow()).thenReturn(true).thenReturn(true).thenReturn(false);
-        when(echoPin.isHigh()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
         this.underTest = new Sonar(this.gpio);
+        verify(gpio).provisionDigitalOutputPin(RaspiPin.GPIO_04);
+        verify(gpio).provisionDigitalInputPin(RaspiPin.GPIO_05);
     }
 
     @Test
     public void itMeasuresADistance() throws ExecutionException, InterruptedException {
+        when(echoPin.isHigh()).thenReturn(true).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(echoPin.isLow()).thenReturn(true).thenReturn(true).thenReturn(false);
+
         final Float actual = this.underTest.measure().get().getValue();
         verify(trigPin, times(2)).low();
-        verify(gpio).provisionDigitalOutputPin(RaspiPin.GPIO_04);
-        verify(gpio).provisionDigitalInputPin(RaspiPin.GPIO_05);
+
         verify(echoPin, times(3)).isLow();
         verify(echoPin, times(4)).isHigh();
         verify(trigPin).high();
 
+        verifyNoMoreInteractions(gpio, echoPin, trigPin);
+    }
+
+    @Test
+    public void itTriesToWaitsForTheSignal2100Times() throws InterruptedException, ExecutionException {
+        when(echoPin.isLow()).thenReturn(true);
+        final Throwable[] ex = new Throwable[1];
+        final CompletableFuture<Measurement> cf = this.underTest.measure().whenComplete((measurement, throwable) -> {
+            ex[0] = throwable;
+        });
+
+        while (!cf.isDone()) {
+            Thread.sleep(100);
+        }
+
+        assertEquals("Timeout waiting for signal start", ex[0].getMessage());
+
+        assertTrue(cf.isCompletedExceptionally());
+
+        verify(trigPin).high();
+        verify(trigPin, times(2)).low();
+        verify(echoPin, times(2101)).isLow();
+        verifyNoMoreInteractions(gpio, echoPin, trigPin);
+    }
+
+    @Test
+    public void itTriesToReadTheSignal2100Times() throws InterruptedException, ExecutionException {
+        when(echoPin.isLow()).thenReturn(true).thenReturn(true).thenReturn(false);
+        when(echoPin.isHigh()).thenReturn(true);
+        final Throwable[] ex = new Throwable[1];
+        final CompletableFuture<Measurement> cf = this.underTest.measure().whenComplete((measurement, throwable) -> {
+            ex[0] = throwable;
+        });
+
+        while (!cf.isDone()) {
+            Thread.sleep(100);
+        }
+
+        assertEquals("Timeout waiting for signal end", ex[0].getMessage());
+
+        assertTrue(cf.isCompletedExceptionally());
+
+        verify(trigPin).high();
+        verify(trigPin, times(2)).low();
+        verify(echoPin, times(3)).isLow();
+        verify(echoPin, times(2101)).isHigh();
         verifyNoMoreInteractions(gpio, echoPin, trigPin);
     }
 }

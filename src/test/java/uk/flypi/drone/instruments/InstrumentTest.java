@@ -32,7 +32,7 @@ public class InstrumentTest {
                     } else if (measureCount == 2) {
                         mes = null;
                         try {
-                            Thread.sleep(10000);
+                            wait(10000);
                         } catch (InterruptedException e) {
                             fail("There has been a problem running the test");
                         }

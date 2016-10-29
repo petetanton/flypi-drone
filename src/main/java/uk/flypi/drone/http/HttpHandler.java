@@ -36,14 +36,10 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
                 final String responseMessage = "Hello from FlyPi!";
                 response = buildDefaultResponse(HttpResponseStatus.OK, responseMessage);
 
-//            if (HttpHeaders.isKeepAlive(request)) {
-//                response.headers().set(HttpHeaders.Names.CONNECTION, HttpHeaders.Values.KEEP_ALIVE);
-//            }
                 response.headers().set(HttpHeaders.Names.CONTENT_TYPE, "text/plain");
                 response.headers().set(HttpHeaders.Names.CONTENT_LENGTH, responseMessage.length());
 
             }
-
 
             ctx.writeAndFlush(response);
         } else {
@@ -58,6 +54,7 @@ public class HttpHandler extends ChannelInboundHandlerAdapter {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+        LOG.error("An exception was caught", cause);
         ctx.writeAndFlush(new DefaultFullHttpResponse(
                 HttpVersion.HTTP_1_1,
                 HttpResponseStatus.INTERNAL_SERVER_ERROR,

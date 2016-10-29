@@ -45,18 +45,20 @@ public class Sonar extends Instrument {
 
     @Override
     public CompletableFuture<Measurement> measure() {
-        return CompletableFuture.supplyAsync(() -> {
+        CompletableFuture<Measurement> response = new CompletableFuture<>();
+        CompletableFuture.runAsync(() -> {
             long duration;
             try {
                 this.triggerSensor();
                 this.waitForSignal();
                 duration = this.measureSignal();
+                response.complete(new Measurement(duration * SOUND_SPEED / (2 * 10000), new Date()));
             } catch (TimeoutException | InterruptedException e) {
                 LOG.error("An exception occured whilst measuring a distance", e);
-                return null;
+                response.completeExceptionally(e);
             }
-            return new Measurement(duration * SOUND_SPEED / (2 * 10000), new Date());
         });
+        return response;
     }
 
     private long measureSignal() throws TimeoutException {
